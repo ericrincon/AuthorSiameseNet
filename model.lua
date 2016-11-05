@@ -1,12 +1,37 @@
 require "nn"
 require 'cutorch'
 
-t1 = torch.randn(1000):cuda()
-t2 = torch.randn(1000):cuda()
+local model = {}
 
-t1:add(t2)
+function model.buildModel()
 
-t1_f = t1:float()
+  -- Directly from the torch7 docs
+  -- inputFrameSize: The input frame size expected in sequences given into
+  -- forward().
+  -- outputFrameSize: The output frame size the convolution layer will produce.
+  -- kW: The kernel width of the convolution
+  -- dW: The step of the convolution. Default is 1.
 
-print{t1}
-print{t1_f}
+
+  -- Use a parallel table to create the siamese network
+  siameseNetwork = nn.ParallelTable()
+
+  -- Create a siamese node
+  nodeLeft = nn.Sequential()
+  nodeLeft:add(nn.TemporalConvolution(inputFrameSize, outputFrameSize, kW))
+  nodeLeft:add(RelU())
+  nodeLeft:add(nn.TemporalMaxPooling(kW))
+
+  -- Create another siamese node
+  nodeRight = nn.Sequential()
+  nodeRight:add(nn.TemporalConvolution(inputFrameSize, outputFrameSize, kW))
+  nodeRight:add(nn.RelU())
+  nodeRight:add(nn.TemporalMaxPooling(kW)(activationRight))
+
+  siameseNetwork:add(maxPoolingLeft)
+  siameseNetwork:add(maxPoolingRight)
+
+  return siameseNetwork
+end
+
+return model

@@ -31,6 +31,8 @@ function model.buildModel()
   siameseNetwork:add(maxPoolingLeft)
   siameseNetwork:add(maxPoolingRight)
 
+  siameseNetwork:add(nn.Softmax())
+
   return siameseNetwork
 end
 
